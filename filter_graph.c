@@ -40,6 +40,7 @@ int init_filter_graph(struct FilterGraph *filters, struct InputVideo *vid, char 
             vid->codec_ctx->pix_fmt,
             time_base.num, time_base.den,
             vid->codec_ctx->sample_aspect_ratio.num, vid->codec_ctx->sample_aspect_ratio.den);
+    printf("filter graph: %s\n", args);
 
     ret = avfilter_graph_create_filter(&filters->buffersrc_ctx,
         buffersrc, "in",

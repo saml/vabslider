@@ -16,3 +16,6 @@ vabslider: main.c input_video.o filter_graph.o
 
 clean:
 	rm -rf vabslider input_video.o
+
+a.out: filtering_video_sdl.c
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
