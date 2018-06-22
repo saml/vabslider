@@ -9,6 +9,6 @@ struct FilterGraph {
     AVFilterGraph *graph;
 };
 
-int init_filter_graph(struct FilterGraph *filters, struct InputVideo *vid, char const* graph_desc);
+int init_filter_graph(struct FilterGraph *filters, struct InputVideo *vid);
 int free_filter_graph(struct FilterGraph *filters);
 #endif

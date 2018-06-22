@@ -19,12 +19,14 @@ int main(int argc, char const *argv[]) {
     struct InputVideo vid2;
     int ret;
     
-    if ((ret = init_input_video(&vid1, vid1_path)) != 0) {
+    ret = init_input_video(&vid1, vid1_path);
+    if (ret != 0) {
         fprintf(stderr, "Failed to create vid1: %s\n", vid1_path);
         goto CLEANUP;
     }
 
-    if ((ret = init_input_video(&vid2, vid2_path)) != 0) {
+    ret = init_input_video(&vid2, vid2_path);
+    if (ret != 0) {
         fprintf(stderr, "Failed to create vid2: %s\n", vid2_path);
         goto CLEANUP;
     }
@@ -41,13 +43,18 @@ int main(int argc, char const *argv[]) {
         width = vid2.codec_ctx->width;
         height = vid2.codec_ctx->height;
     }
-    if ((ret = init_filter_graph(&filters, &vid1, "[in]crop@xcrop=w=100:x=0:y=0[cropped]")) != 0) {
+    // char const* GRAPH = "[in]crop@xcrop=w=100:x=0:y=0[cropped]";
+    // char const* GRAPH = "[in]drawtext=text=hello:fontsize=120:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2[cropped]";
+    ret = init_filter_graph(&filters, &vid1);
+    if (ret != 0) {
         fprintf(stderr, "Failed to initialize filter graph\n");
+        goto CLEANUP;
     }
     printf("filter graph dump:\n%s\n", avfilter_graph_dump(filters.graph, NULL));
     //"[0][1]scale2ref[v0][v1]; [v0]crop@crop=w=200[cropped]; [cropped][v1]overlay"
 
-    if ((ret = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER)) != 0) {
+    ret = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+    if (ret != 0) {
         fprintf(stderr, "Failed to initialize SDL2: %s\n", SDL_GetError());
         goto CLEANUP;
     }
@@ -70,7 +77,8 @@ int main(int argc, char const *argv[]) {
     }
 
     SDL_RendererInfo renderer_info;
-    if ((ret = SDL_GetRendererInfo(ren, &renderer_info)) != 0) {
+    ret = SDL_GetRendererInfo(ren, &renderer_info);
+    if (ret != 0) {
         fprintf(stderr, "Failed to get renderer info: %s\n", SDL_GetError());
         goto CLEANUP;
     } else {
@@ -82,33 +90,46 @@ int main(int argc, char const *argv[]) {
     AVPacket packet;
     AVFrame *frame = av_frame_alloc();
     AVFrame *filter_frame = av_frame_alloc();
+    int64_t last_pts;
     while (1) {
-        if ((ret = av_read_frame(vid1.format_ctx, &packet)) < 0) {
+        ret = av_read_frame(vid1.format_ctx, &packet);
+        if (ret < 0) {
             break;
         }
         if (packet.stream_index == vid1.video_stream_idx) {
-            if ((ret = avcodec_send_packet(vid1.codec_ctx, &packet)) < 0) {
+            ret = avcodec_send_packet(vid1.codec_ctx, &packet);
+            if (ret < 0) {
                 fprintf(stderr, "Failed to send packet to decoder\n");
                 goto CLEANUP;
             }
 
-            while ((ret = avcodec_receive_frame(vid1.codec_ctx, frame)) >= 0) {
+            while (ret >= 0) {
+                ret = avcodec_receive_frame(vid1.codec_ctx, frame);
                 if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
                     break;
+                } else if (ret < 0) {
+                    fprintf(stderr, "Failed to receive frame from decoder\n");
+                    goto CLEANUP;
                 }
-
+                
                 frame->pts = frame->best_effort_timestamp;
-
-                if ((ret = av_buffersrc_add_frame_flags(filters.buffersrc_ctx, frame, AV_BUFFERSRC_FLAG_KEEP_REF)) < 0) {
+                
+                // ret = av_buffersrc_add_frame_flags(filters.buffersrc_ctx, frame, AV_BUFFERSRC_FLAG_KEEP_REF);
+                ret = av_buffersrc_add_frame(filters.buffersrc_ctx, frame);
+                if (ret < 0) {
                     fprintf(stderr, "Failed to feed filter graph\n");
                     goto CLEANUP;
                 }
 
-                while ((ret = av_buffersink_get_frame(filters.buffersink_ctx, filter_frame)) >= 0) {
+                while (1) {
+                    ret = av_buffersink_get_frame(filters.buffersink_ctx, filter_frame);
                     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
                         break;
+                    } else if (ret < 0) {
+                        fprintf(stderr, "Failed to receive frame from filter graph\n");
+                        goto CLEANUP;
                     }
-                    printf("frame dimension %ix%i\n", frame->width, frame->height);
+                    // printf("frame dimension %ix%i\n", frame->width, frame->height);
                     SDL_UpdateYUVTexture(texture, NULL,
                         frame->data[0], frame->linesize[0],
                         frame->data[1], frame->linesize[1],
@@ -117,6 +138,10 @@ int main(int argc, char const *argv[]) {
                     SDL_RenderCopy(ren, texture, NULL, NULL);
                     SDL_RenderPresent(ren);
                     av_frame_unref(filter_frame);
+                    // int64_t frame_delay = frame->pts - last_pts;
+                    // last_pts = frame->pts;
+                    // printf("frame delay %i\n", frame_delay);
+                    // SDL_Delay(frame_delay);
                 }
                 av_frame_unref(frame);
             }

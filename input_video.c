@@ -7,17 +7,20 @@ int init_input_video(struct InputVideo *vid, char const *path) {
     }
 
     int ret;
-    if ((ret = avformat_open_input(&vid->format_ctx, path, NULL, NULL)) < 0) {
+    ret = avformat_open_input(&vid->format_ctx, path, NULL, NULL);
+    if (ret < 0) {
         fprintf(stderr, "File open failed: %s\n", path);
         return ret;
     }
 
-    if ((ret = avformat_find_stream_info(vid->format_ctx, NULL)) < 0) {
+    ret = avformat_find_stream_info(vid->format_ctx, NULL);
+    if (ret < 0) {
         fprintf(stderr, "Cannot find stream: %s\n", path);
         return ret;
     }
 
-    if ((ret = av_find_best_stream(vid->format_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, &(vid->codec), 0)) < 0) {
+    ret = av_find_best_stream(vid->format_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, &vid->codec, 0);
+    if (ret < 0) {
         fprintf(stderr, "Cannot find video stream: %s\n", path);
         return ret;
     }
@@ -30,14 +33,16 @@ int init_input_video(struct InputVideo *vid, char const *path) {
         return ret;
     }
 
-    if ((ret = avcodec_parameters_to_context(
-            vid->codec_ctx,
-            vid->format_ctx->streams[vid->video_stream_idx]->codecpar)) < 0) {
+    ret = avcodec_parameters_to_context(
+        vid->codec_ctx,
+        vid->format_ctx->streams[vid->video_stream_idx]->codecpar);
+    if (ret < 0) {
         fprintf(stderr, "Failed avcodec_parameters_to_context: %s\n", path);
         return ret;
     }
 
-    if ((ret = avcodec_open2(vid->codec_ctx, vid->codec, NULL)) < 0) {
+    ret = avcodec_open2(vid->codec_ctx, vid->codec, NULL);
+    if (ret < 0) {
         fprintf(stderr, "Cannot open video decoder: %s\n", path);
         return ret;
     }
