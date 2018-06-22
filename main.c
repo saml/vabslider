@@ -41,9 +41,10 @@ int main(int argc, char const *argv[]) {
         width = vid2.codec_ctx->width;
         height = vid2.codec_ctx->height;
     }
-    if ((ret = init_filter_graph(&filters, &vid1, "[in]crop@xcrop=w=100:x=0:y=0:keep_aspect=1[out]")) != 0) {
+    if ((ret = init_filter_graph(&filters, &vid1, "crop@xcrop=w=100:x=0:y=0")) != 0) {
         fprintf(stderr, "Failed to initialize filter graph\n");
     }
+    printf("filter graph dump:\n%s\n", avfilter_graph_dump(filters.graph, NULL));
     //"[0][1]scale2ref[v0][v1]; [v0]crop@crop=w=200[cropped]; [cropped][v1]overlay"
 
     if ((ret = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER)) != 0) {

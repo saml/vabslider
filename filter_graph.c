@@ -41,7 +41,7 @@ int init_filter_graph(struct FilterGraph *filters, struct InputVideo *vid, char 
             time_base.num, time_base.den,
             vid->codec_ctx->sample_aspect_ratio.num, vid->codec_ctx->sample_aspect_ratio.den);
     printf("filter graph: %s\n", args);
-
+    
     ret = avfilter_graph_create_filter(&filters->buffersrc_ctx,
         buffersrc, "in",
         args,
@@ -51,6 +51,7 @@ int init_filter_graph(struct FilterGraph *filters, struct InputVideo *vid, char 
         fprintf(stderr, "Failed to create filter graph\n");
         goto end;
     }
+    
 
     /* buffer video sink: to terminate the filter chain. */
     ret = avfilter_graph_create_filter(&filters->buffersink_ctx,
