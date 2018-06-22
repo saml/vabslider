@@ -1,12 +1,18 @@
 
 .PHONY = clean
 
-CFLAGS = -I/usr/include/ffmpeg -I/usr/include/SDL2 -D_REENTRANT -I$(HOME)/.local/include -L$(HOME)/.local/lib
+FFMPEG_INCLUDE = /usr/include/ffmpeg
+SDL2_INCLUDE = /usr/include/SDL2
+
+CFLAGS = -I$(FFMPEG_INCLUDE) -I$(SDL2_INCLUDE) -D_REENTRANT
 LDFLAGS = -lavcodec -lavformat -lswscale -lSDL2 -Wl,-rpath=_ORIGIN
 
-vabslider: vabslider.c
-	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) 
+vabslider: main.c input_video.o
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 	chrpath -r '$$ORIGIN' $@
 
+%.o: %.c
+	$(CC) -c $(CFLAGS) $< -o $@
+
 clean:
-	rm -rf vabslider
+	rm -rf vabslider input_video.o
