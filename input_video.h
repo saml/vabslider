@@ -1,5 +1,5 @@
-#ifndef VABSLIDER_INPUT_VIDEO
-#define VABSLIDER_INPUT_VIDEO
+#ifndef VABSLIDER_INPUT_VIDEO_H
+#define VABSLIDER_INPUT_VIDEO_H
 
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -14,7 +14,7 @@ struct InputVideo {
     AVCodecContext *codec_ctx;
 };
 
-int new_input_video(struct InputVideo *vid, char const *path);
+int init_input_video(struct InputVideo *vid, char const *path);
 int free_input_video(struct InputVideo *vid);
 
 #endif

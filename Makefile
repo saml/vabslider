@@ -5,9 +5,9 @@ FFMPEG_INCLUDE = /usr/include/ffmpeg
 SDL2_INCLUDE = /usr/include/SDL2
 
 CFLAGS = -I$(FFMPEG_INCLUDE) -I$(SDL2_INCLUDE) -D_REENTRANT
-LDFLAGS = -lavcodec -lavformat -lswscale -lSDL2 -Wl,-rpath=_ORIGIN
+LDFLAGS = -lavcodec -lavformat -lswscale -lavutil -lavfilter -lSDL2 -Wl,-rpath=_ORIGIN
 
-vabslider: main.c input_video.o
+vabslider: main.c input_video.o filter_graph.o
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 	chrpath -r '$$ORIGIN' $@
 

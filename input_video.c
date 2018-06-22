@@ -1,7 +1,6 @@
 #include "input_video.h"
 
-
-int new_input_video(struct InputVideo *vid, char const *path) {
+int init_input_video(struct InputVideo *vid, char const *path) {
     vid->format_ctx = avformat_alloc_context();
     if (!vid->format_ctx) {
         return AVERROR(ENOMEM);
