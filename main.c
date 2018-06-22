@@ -41,7 +41,7 @@ int main(int argc, char const *argv[]) {
         width = vid2.codec_ctx->width;
         height = vid2.codec_ctx->height;
     }
-    if ((ret = init_filter_graph(&filters, &vid1, "crop@xcrop=w=100:x=0:y=0")) != 0) {
+    if ((ret = init_filter_graph(&filters, &vid1, "[in]crop@xcrop=w=100:x=0:y=0[cropped]")) != 0) {
         fprintf(stderr, "Failed to initialize filter graph\n");
     }
     printf("filter graph dump:\n%s\n", avfilter_graph_dump(filters.graph, NULL));
@@ -108,6 +108,7 @@ int main(int argc, char const *argv[]) {
                     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
                         break;
                     }
+                    printf("frame dimension %ix%i\n", frame->width, frame->height);
                     SDL_UpdateYUVTexture(texture, NULL,
                         frame->data[0], frame->linesize[0],
                         frame->data[1], frame->linesize[1],

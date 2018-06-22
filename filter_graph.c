@@ -90,7 +90,7 @@ int init_filter_graph(struct FilterGraph *filters, struct InputVideo *vid, char 
      * filter output label is not specified, it is set to "out" by
      * default.
      */
-    inputs->name       = av_strdup("out");
+    inputs->name       = av_strdup("cropped");
     inputs->filter_ctx = filters->buffersink_ctx;
     inputs->pad_idx    = 0;
     inputs->next       = NULL;
