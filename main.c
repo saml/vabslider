@@ -114,8 +114,8 @@ int main(int argc, char const *argv[]) {
                 
                 frame->pts = frame->best_effort_timestamp;
                 
-                // ret = av_buffersrc_add_frame_flags(filters.buffersrc_ctx, frame, AV_BUFFERSRC_FLAG_KEEP_REF);
-                ret = av_buffersrc_add_frame(filters.buffersrc_ctx, frame);
+                ret = av_buffersrc_add_frame_flags(filters.buffersrc_ctx, frame, AV_BUFFERSRC_FLAG_KEEP_REF);
+                // ret = av_buffersrc_add_frame(filters.buffersrc_ctx, frame);
                 if (ret < 0) {
                     fprintf(stderr, "Failed to feed filter graph\n");
                     goto CLEANUP;
