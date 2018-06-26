@@ -17,5 +17,5 @@ vabslider: main.c input_video.o filter_graph.o
 clean:
 	rm -rf vabslider input_video.o
 
-a.out: filtering_video_sdl.c
-	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
+a.out: simple-streamcb.c
+	$(CC) -o $@ $^ $(CFLAGS) -I$(HOME)/.local/include -L$(HOME)/.local/lib -lmpv $(LDFLAGS)
