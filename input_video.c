@@ -1,3 +1,5 @@
+#include <libavutil/rational.h>
+
 #include "input_video.h"
 
 int init_input_video(struct InputVideo *vid, char const *path) {
@@ -53,4 +55,8 @@ int init_input_video(struct InputVideo *vid, char const *path) {
 int free_input_video(struct InputVideo *vid) {
     avcodec_free_context(&vid->codec_ctx);
     avformat_close_input(&vid->format_ctx);
+}
+
+AVRational time_base(struct InputVideo *vid) {
+    return vid->format_ctx->streams[vid->video_stream_idx]->time_base;
 }

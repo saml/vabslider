@@ -17,4 +17,6 @@ struct InputVideo {
 int init_input_video(struct InputVideo *vid, char const *path);
 int free_input_video(struct InputVideo *vid);
 
+AVRational time_base(struct InputVideo *vid);
+
 #endif

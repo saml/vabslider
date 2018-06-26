@@ -6,11 +6,13 @@
 #include "input_video.h"
 #include "filter_graph.h"
 
-int init_filter_graph(struct FilterGraph *filters, struct InputVideo *vid) {
+int init_filter_graph(struct FilterGraph *filters, struct InputVideo *larger, struct InputVideo *smaller) {
     char graph_txt[1024];
     int ret;
 
-    AVRational time_base = vid->format_ctx->streams[vid->video_stream_idx]->time_base;
+    AVRational larger_time_base = time_base(larger);
+    AVRational smaller_time_base = time_base(smaller);
+    
     enum AVPixelFormat pix_fmts[] = { AV_PIX_FMT_GRAY8, AV_PIX_FMT_NONE };
 
     filters->graph = avfilter_graph_alloc();
@@ -20,17 +22,20 @@ int init_filter_graph(struct FilterGraph *filters, struct InputVideo *vid) {
         goto end;
     }
 
-
-
-    // crop@crop1=w=100:x=0:y=0
     snprintf(graph_txt, sizeof(graph_txt),
-            "buffer@in1=video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d[in];"
-            "[in]drawtext@text=text=hello:fontsize=120:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2[cropped];"
-            "[cropped]buffersink@out1",
-            vid->codec_ctx->width, vid->codec_ctx->height,
-            vid->codec_ctx->pix_fmt,
-            time_base.num, time_base.den,
-            vid->codec_ctx->sample_aspect_ratio.num, vid->codec_ctx->sample_aspect_ratio.den);
+            "buffer@in1=video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d[larger];"
+            "buffer@in2=video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d[smaller];"
+            "[larger][smaller]scale2ref[out1][out2];"
+            "[out1]buffersink@out1;"
+            "[out2]buffersink@out2",
+            larger->codec_ctx->width, larger->codec_ctx->height,
+            larger->codec_ctx->pix_fmt,
+            larger_time_base.num, larger_time_base.den,
+            larger->codec_ctx->sample_aspect_ratio.num, larger->codec_ctx->sample_aspect_ratio.den,
+            smaller->codec_ctx->width, smaller->codec_ctx->height,
+            smaller->codec_ctx->pix_fmt,
+            smaller_time_base.num, smaller_time_base.den,
+            smaller->codec_ctx->sample_aspect_ratio.num, smaller->codec_ctx->sample_aspect_ratio.den);
     printf("filter graph: %s\n", graph_txt);
 
     AVFilterInOut *inputs;
@@ -47,18 +52,32 @@ int init_filter_graph(struct FilterGraph *filters, struct InputVideo *vid) {
         goto end;
     }
 
-    filters->buffersrc_ctx = avfilter_graph_get_filter(filters->graph, "buffer@in1");
-    if (!filters->buffersrc_ctx) {
+    filters->vid1_in = avfilter_graph_get_filter(filters->graph, "buffer@in1");
+    if (!filters->vid1_in) {
         fprintf(stderr, "Cannot find filter: buffer@in1\n");
         ret = 1;
         goto end;
     }
-    filters->buffersink_ctx = avfilter_graph_get_filter(filters->graph, "buffersink@out1");
-    if (!filters->buffersink_ctx) {
+    filters->vid1_out = avfilter_graph_get_filter(filters->graph, "buffersink@out1");
+    if (!filters->vid1_out) {
         fprintf(stderr, "Cannot find filter: buffersink@out1\n");
         ret = 1;
         goto end;
     }
+
+    filters->vid2_in = avfilter_graph_get_filter(filters->graph, "buffer@in2");
+    if (!filters->vid2_in) {
+        fprintf(stderr, "Cannot find filter: buffer@in2\n");
+        ret = 1;
+        goto end;
+    }
+    filters->vid2_out = avfilter_graph_get_filter(filters->graph, "buffersink@out2");
+    if (!filters->vid2_out) {
+        fprintf(stderr, "Cannot find filter: buffersink@out2\n");
+        ret = 1;
+        goto end;
+    }
+
 
 end:
     avfilter_inout_free(&inputs);
