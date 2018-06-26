@@ -5,13 +5,16 @@ local _M = {
 	smaller=nil,
 	lavfi=nil,
 };
+
+
+
 local function resetSlider()
 	local x, y = mp.get_mouse_pos();
 	local osd_width,_ = mp.get_osd_size();
-	local osd_left_margin,_ = mp.get_osd_margins();
-	local scaled_width = osd_width - osd_left_margin;
+	local left,top,right,bottom = mp.get_osd_margins();
+	local scaled_width = right - left;
 	local video_width = _M.smaller['demux-w'];
-	local scaled_x = x - osd_left_margin;
+	local scaled_x = x - left;
 	local video_x = video_width * scaled_x / scaled_width;
 	local crop_width;
 	if video_x <= 0 then
@@ -21,7 +24,7 @@ local function resetSlider()
 	else
 		crop_width = video_x;
 	end
-	print(string.format('mouse=(%s,%s) osd-size=%s osd-margins=%s video_x=%s crop=%s', x, y, osd_width, osd_left_margin, video_x, crop_width));
+	print(string.format('mouse=(%s,%s) osd-size=%s osd-margins=%s video_width=%s scaled_width=%s video_x=%s crop=%s', x, y, osd_width, left, video_width, scaled_width, video_x, crop_width));
 	mp.set_property('lavfi-complex', string.format(_M.lavfi, crop_width));
 		
 end
