@@ -48,7 +48,6 @@ local function resetSlider()
 	else
 		crop_width = video_x;
 	end
-	-- print(string.format('mouse=(%s,%s) osd-size=%s osd-margins=%s video_width=%s scaled_width=%s video_x=%s crop=%s', x, y, osd_width, left, video_width, scaled_width, video_x, crop_width));
 	mp.set_property('lavfi-complex', string.format(_M.lavfi, crop_width));
 		
 end
@@ -66,11 +65,11 @@ local function main(event)
 	if vid1['demux-w'] * vid1['demux-h'] < vid2['demux-w'] * vid2['demux-h'] then
 		_M.smaller = vid1;
 		_M.larger = vid2;
-		_M.lavfi = '[vid2][vid1]scale2ref[second][first]; [first]crop=w=%s:x=0:y=0[cropped]; [second][cropped]overlay[vo]';
+		_M.lavfi = '[vid1][vid2]scale2ref[first][second]; [first]crop=w=%s:x=0:y=0[cropped]; [second][cropped]overlay[vo]';
 	else
 		_M.smaller = vid2;
 		_M.larger = vid1;
-		_M.lavfi = '[vid1][vid2]scale2ref[second][first]; [first]crop=w=%s:x=0:y=0[cropped]; [second][cropped]overlay[vo]';
+		_M.lavfi = '[vid2][vid1]scale2ref[second][first]; [first]crop=w=%s:x=0:y=0[cropped]; [second][cropped]overlay[vo]';
 	end
 	mp.set_property('lavfi-complex', string.format(_M.lavfi, _M.smaller['demux-w'] / 2));
 	mp.register_event('tick', resetSlider);

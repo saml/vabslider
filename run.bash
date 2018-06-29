@@ -9,5 +9,8 @@ then
 	exit 1
 fi
 
+a="$1"
+b="$2"
+shift 2
 #~/.local/bin/mpv "$1" --external-file "$2" --video-unscaled --script vabslider.lua
-~/.local/bin/mpv "$1" --external-file "$2" --no-osc --script vabslider.lua
+~/.local/bin/mpv "$a" --external-file "$b" --script vabslider.lua "$@"
